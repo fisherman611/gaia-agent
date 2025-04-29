@@ -798,7 +798,7 @@ def build_graph(provider: str = "groq"):
 
 # test
 if __name__ == "__main__":
-    question = "Generate gradient image with red and blue colors"
+    question = "What is the capital of Vietnam?"
     graph = build_graph(provider="groq")
     messages = [HumanMessage(content=question)]
     messages = graph.invoke({"messages": messages})
