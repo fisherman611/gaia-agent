@@ -43,14 +43,12 @@ load_dotenv()
 
 
 @tool
-def wiki_search(query: str) -> Dict:
-    """
-    Seach Wikipedia for a query and return maximum 2 results.
+def wiki_search(query: str) -> str:
+    """Search Wikipedia for a query and return maximum 2 results.
 
     Args:
-        query (str): the search query
-    """
-    search_docs = WikipediaLoader(query=query, max_results=2).load()
+        query: The search query."""
+    search_docs = WikipediaLoader(query=query, load_max_docs=2).load()
     formatted_search_docs = "\n\n---\n\n".join(
         [
             f'<Document source="{doc.metadata["source"]}" page="{doc.metadata.get("page", "")}"/>\n{doc.page_content}\n</Document>'
@@ -61,14 +59,12 @@ def wiki_search(query: str) -> Dict:
 
 
 @tool
-def web_search(query: str) -> Dict:
-    """
-    Search the web for a query and return maximum 2 results.
+def web_search(query: str) -> str:
+    """Search Tavily for a query and return maximum 3 results.
 
     Args:
-        query (str): the search query
-    """
-    search_docs = TavilySearchResults(query=query, max_results=2).load()
+        query: The search query."""
+    search_docs = TavilySearchResults(max_results=3).invoke(query=query)
     formatted_search_docs = "\n\n---\n\n".join(
         [
             f'<Document source="{doc.metadata["source"]}" page="{doc.metadata.get("page", "")}"/>\n{doc.page_content}\n</Document>'
@@ -79,21 +75,19 @@ def web_search(query: str) -> Dict:
 
 
 @tool
-def arxiv_search(query: str) -> Dict:
-    """
-    Search arXiv for a query and return maximum 2 results.
+def arxiv_search(query: str) -> str:
+    """Search Arxiv for a query and return maximum 3 result.
 
     Args:
-        query (str): the search query
-    """
-    search_docs = ArxivLoader(query=query, max_results=2).load()
+        query: The search query."""
+    search_docs = ArxivLoader(query=query, load_max_docs=3).load()
     formatted_search_docs = "\n\n---\n\n".join(
         [
-            f'<Document source="{doc.metadata["source"]}" page="{doc.metadata.get("page", "")}"/>\n{doc.page_content}\n</Document>'
+            f'<Document source="{doc.metadata["source"]}" page="{doc.metadata.get("page", "")}"/>\n{doc.page_content[:1000]}\n</Document>'
             for doc in search_docs
         ]
     )
-    return {"arxiv_results": formatted_search_docs}
+    return {"arvix_results": formatted_search_docs}
 
 
 ### =============== CODE INTERPRETER TOOLS =============== ###
@@ -743,7 +737,7 @@ def build_graph(provider: str = "groq"):
     # Load environment variables from .env file
     if provider == "groq":
         # Groq https://console.groq.com/docs/models
-        llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0)
+        llm = ChatGroq(model="qwen-qwq-32b", temperature=0)
     elif provider == "huggingface":
         # TODO: Add huggingface endpoint
         llm = ChatHuggingFace(
@@ -798,7 +792,7 @@ def build_graph(provider: str = "groq"):
 
 # test
 if __name__ == "__main__":
-    question = "What is the capital of Vietnam?"
+    question = "How many studio albums were published by Mercedes Sosa between 2000 and 2009 (included)? You can use the latest 2022 version of english wikipedia."
     graph = build_graph(provider="groq")
     messages = [HumanMessage(content=question)]
     messages = graph.invoke({"messages": messages})
