@@ -25,7 +25,7 @@ class CodeInterpreter:
             "cmath", "uuid", "tempfile", "requests", "urllib"
         ]
         self.max_execution_time = max_execution_time
-        self.working_directory = working_directory or os.path.join(os.getcwd(), "code_execution") 
+        self.working_directory = working_directory or os.path.join(os.getcwd()) 
         if not os.path.exists(self.working_directory):
             os.makedirs(self.working_directory)
         
