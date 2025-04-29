@@ -707,28 +707,38 @@ create_retriever_tool = create_retriever_tool(
 )
 
 
+# tools = [
+#     web_search,
+#     wiki_search,
+#     arxiv_search,
+#     multiply,
+#     add,
+#     subtract,
+#     divide,
+#     modulus,
+#     power,
+#     square_root,
+#     save_and_read_file,
+#     download_file_from_url,
+#     extract_text_from_image,
+#     analyze_csv_file,
+#     analyze_excel_file,
+#     execute_code_multilang,
+#     analyze_image,
+#     transform_image,
+#     draw_on_image,
+#     generate_simple_image,
+#     combine_images,
+# ]
 tools = [
-    web_search,
-    wiki_search,
-    arxiv_search,
     multiply,
     add,
     subtract,
     divide,
     modulus,
-    power,
-    square_root,
-    save_and_read_file,
-    download_file_from_url,
-    extract_text_from_image,
-    analyze_csv_file,
-    analyze_excel_file,
-    execute_code_multilang,
-    analyze_image,
-    transform_image,
-    draw_on_image,
-    generate_simple_image,
-    combine_images,
+    wiki_search,
+    web_search,
+    arxiv_search,
 ]
 
 # Build graph function
@@ -742,7 +752,7 @@ def build_graph(provider: str = "groq"):
         # TODO: Add huggingface endpoint
         llm = ChatHuggingFace(
             llm=HuggingFaceEndpoint(
-                repo_id="meta-llama/Llama-2-7b-chat-hf",
+                repo_id="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
                 task="text-generation",  # for chat‐style use “text-generation”
                 max_new_tokens=1024,
                 do_sample=False,
@@ -752,7 +762,7 @@ def build_graph(provider: str = "groq"):
             verbose=True,
         )
     else:
-        raise ValueError("Invalid provider. Choose 'google', 'groq' or 'huggingface'.")
+        raise ValueError("Invalid provider. Choose 'groq' or 'huggingface'.")
     # Bind tools to LLM
     llm_with_tools = llm.bind_tools(tools)
 
@@ -792,7 +802,7 @@ def build_graph(provider: str = "groq"):
 
 # test
 if __name__ == "__main__":
-    question = "How many studio albums were published by Mercedes Sosa between 2000 and 2009 (included)? You can use the latest 2022 version of english wikipedia."
+    question = ".rewsna eht sa ""tfel"" drow eht fo etisoppo eht etirw ,ecnetnes siht dnatsrednu uoy fI"
     graph = build_graph(provider="groq")
     messages = [HumanMessage(content=question)]
     messages = graph.invoke({"messages": messages})
