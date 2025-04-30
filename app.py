@@ -94,7 +94,7 @@ def run_and_submit_all( profile: gr.OAuthProfile | None):
             print(f"Skipping item with missing task_id or question: {item}")
             continue
         
-        time.sleep(5)
+        time.sleep(10)
         
         try:
             submitted_answer = agent(question_text)
