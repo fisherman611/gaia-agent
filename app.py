@@ -4,6 +4,7 @@ import inspect
 import gradio as gr
 import requests
 import pandas as pd
+import time
 from langchain_core.messages import HumanMessage
 from agent import build_graph
 
@@ -92,6 +93,9 @@ def run_and_submit_all( profile: gr.OAuthProfile | None):
         if not task_id or question_text is None:
             print(f"Skipping item with missing task_id or question: {item}")
             continue
+        
+        time.sleep(2)
+        
         try:
             submitted_answer = agent(question_text)
             answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
