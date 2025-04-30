@@ -90,7 +90,7 @@ To run the application using the command line, use the following command (replac
 ```
 py -3.11 app.py
 ```
-
+Or run in the [Hugging Face Space](https://huggingface.co/spaces/fisherman611/gaia-agent)
 ## **Resources**
 - [GAIA Benchmark](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
 - [Hugging Face Agents Course](https://huggingface.co/agents-course)
