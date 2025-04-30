@@ -87,7 +87,7 @@ def arxiv_search(query: str) -> str:
             for doc in search_docs
         ]
     )
-    return {"arvix_results": formatted_search_docs}
+    return {"arxiv_results": formatted_search_docs}
 
 
 ### =============== CODE INTERPRETER TOOLS =============== ###
