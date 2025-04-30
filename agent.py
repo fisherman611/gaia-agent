@@ -692,7 +692,7 @@ embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-mpnet-base-v2"
 )  #  dim=768
 supabase: Client = create_client(
-    os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_KEY")
+    os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 )
 vector_store = SupabaseVectorStore(
     client=supabase,
@@ -707,39 +707,30 @@ create_retriever_tool = create_retriever_tool(
 )
 
 
-# tools = [
-#     web_search,
-#     wiki_search,
-#     arxiv_search,
-#     multiply,
-#     add,
-#     subtract,
-#     divide,
-#     modulus,
-#     power,
-#     square_root,
-#     save_and_read_file,
-#     download_file_from_url,
-#     extract_text_from_image,
-#     analyze_csv_file,
-#     analyze_excel_file,
-#     execute_code_multilang,
-#     analyze_image,
-#     transform_image,
-#     draw_on_image,
-#     generate_simple_image,
-#     combine_images,
-# ]
 tools = [
+    web_search,
+    wiki_search,
+    arxiv_search,
     multiply,
     add,
     subtract,
     divide,
     modulus,
-    wiki_search,
-    web_search,
-    arxiv_search,
+    power,
+    square_root,
+    save_and_read_file,
+    download_file_from_url,
+    extract_text_from_image,
+    analyze_csv_file,
+    analyze_excel_file,
+    execute_code_multilang,
+    analyze_image,
+    transform_image,
+    draw_on_image,
+    generate_simple_image,
+    combine_images,
 ]
+
 
 # Build graph function
 def build_graph(provider: str = "groq"):
@@ -802,7 +793,7 @@ def build_graph(provider: str = "groq"):
 
 # test
 if __name__ == "__main__":
-    question = ".rewsna eht sa ""tfel"" drow eht fo etisoppo eht etirw ,ecnetnes siht dnatsrednu uoy fI"
+    question = "When was a picture of St. Thomas Aquinas first added to the Wikipedia page on the Principle of double effect?"
     graph = build_graph(provider="groq")
     messages = [HumanMessage(content=question)]
     messages = graph.invoke({"messages": messages})
