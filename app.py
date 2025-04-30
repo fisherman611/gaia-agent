@@ -105,7 +105,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
                     "Submitted Answer": submitted_answer,
                 }
             )
-            time.sleep(10)
+            # time.sleep(10)
         except Exception as e:
             print(f"Error running agent on task {task_id}: {e}")
             results_log.append(
@@ -115,7 +115,7 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
                     "Submitted Answer": f"AGENT ERROR: {e}",
                 }
             )
-            time.sleep(10)
+            # time.sleep(10)
 
     if not answers_payload:
         print("Agent did not produce any answers to submit.")
