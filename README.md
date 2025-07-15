@@ -132,10 +132,10 @@ START → Retriever → Assistant → Tools → Assistant
 - **HuggingFace Embeddings**: sentence-transformers/all-mpnet-base-v2
 
 ### **Multi-Modal File Support**
-- **Images**: JPG, PNG, GIF, BMP, WebP (Base64 processing)
-- **Documents**: PDF, DOC, DOCX, TXT, MD (Content extraction)
-- **Data**: CSV, Excel (Pandas analysis)
-- **Code**: Python, JavaScript, HTML, CSS, JSON, XML
+- **Images**: JPG, PNG, GIF, BMP, WebP
+- **Documents**: PDF, DOC, DOCX, TXT, MD
+- **Data**: CSV, Excel, JSON
+- **Code**: Python, Bash, SQL, C, Java
 
 ## ⚙️ **Installation & Setup**
 
