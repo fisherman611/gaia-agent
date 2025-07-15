@@ -64,10 +64,10 @@ def web_search(query: str) -> str:
 
     Args:
         query: The search query."""
-    search_docs = TavilySearchResults(max_results=3).invoke(query=query)
+    search_docs = TavilySearchResults(max_results=3).invoke(query)
     formatted_search_docs = "\n\n---\n\n".join(
         [
-            f'<Document source="{doc.metadata["source"]}" page="{doc.metadata.get("page", "")}"/>\n{doc.page_content}\n</Document>'
+            f'<Document source="{doc.get("url", "")}" title="{doc.get("title", "")}"/>\n{doc.get("content", "")}\n</Document>'
             for doc in search_docs
         ]
     )
@@ -738,7 +738,7 @@ def build_graph(provider: str = "groq"):
     # Load environment variables from .env file
     if provider == "groq":
         # Groq https://console.groq.com/docs/models
-        llm = ChatGroq(model="qwen-qwq-32b", temperature=0)
+        llm = ChatGroq(model="qwen/qwen3-32b", temperature=0)
     elif provider == "huggingface":
         # TODO: Add huggingface endpoint
         llm = ChatHuggingFace(

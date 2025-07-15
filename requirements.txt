@@ -18,3 +18,4 @@ pgvector
 python-dotenv
 pytesseract
 matplotlib
+sentence_transformers
