@@ -51,6 +51,51 @@ hf_oauth_expiration_minutes: 480
 - **Generate Simple Image:** Generate a simple image (gradient, noise, pattern, chart)
 - **Combine Images:** Combine multiple images (collage, stack, blend)
 
+## **Database Setup**
+
+### **Supabase Vector Store**
+This project uses Supabase as a vector database to store and retrieve GAIA benchmark questions and answers. The vector store enables semantic search capabilities for finding relevant examples.
+
+### **Creating the `match_documents_2` Function**
+To set up the vector similarity search function in your Supabase database, execute the following SQL commands:
+
+```sql
+-- 1. Make sure pgvector is enabled
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- 2. Create the RPC for your "documents2" table
+CREATE OR REPLACE FUNCTION public.match_documents_2(
+  query_embedding vector(768)
+)
+RETURNS TABLE(
+  id         bigint,
+  content    text,
+  metadata   jsonb,
+  embedding  vector(768),
+  similarity double precision
+)
+LANGUAGE sql STABLE
+AS $$
+  SELECT
+    id,
+    content,
+    metadata,
+    embedding,
+    1 - (embedding <=> query_embedding) AS similarity
+  FROM public.documents2
+  ORDER BY embedding <=> query_embedding
+  LIMIT 10;
+$$;
+
+-- 3. Grant execute to anon/authenticated
+GRANT EXECUTE ON FUNCTION public.match_documents(vector) TO anon, authenticated;
+```
+
+This setup:
+1. Enables the pgvector extension for vector operations
+2. Creates a stored function that performs vector similarity search using cosine distance (`<=>`)
+3. Grants execution permissions to anonymous and authenticated users
+4. Returns the top 10 most similar documents with their similarity scores
 
 ## **Installation**
 Clone the repository, change the current working directory to this repository's root folder:
