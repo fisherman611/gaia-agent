@@ -1,211 +1,364 @@
-""" Basic Agent Evaluation Runner"""
-import os
-import inspect
 import gradio as gr
-import requests
-import pandas as pd
 import time
+import os
+import base64
+from typing import List, Tuple, Optional
 from langchain_core.messages import HumanMessage
 from agent import build_graph
 
-
-
-# (Keep Constants as is)
-# --- Constants ---
-DEFAULT_API_URL = "https://agents-course-unit4-scoring.hf.space"
-
-# --- Basic Agent Definition ---
-# ----- THIS IS WERE YOU CAN BUILD WHAT YOU WANT ------
-
-
-class BasicAgent:
-    """A langgraph agent."""
+class QnAChatbot:
+    """A Q&A chatbot interface for the agent."""
+    
     def __init__(self):
-        print("BasicAgent initialized.")
+        print("🤖 QnAChatbot initializing...")
+        print("🔧 Building agent graph...")
         self.graph = build_graph()
-
-    def __call__(self, question: str) -> str:
-        print(f"Agent received question (first 50 chars): {question[:50]}...")
-        # Wrap the question in a HumanMessage from langchain_core
-        messages = [HumanMessage(content=question)]
-        messages = self.graph.invoke({"messages": messages})
-        answer = messages['messages'][-1].content
-        return answer[14:]
-
-
-def run_and_submit_all( profile: gr.OAuthProfile | None):
-    """
-    Fetches all questions, runs the BasicAgent on them, submits all answers,
-    and displays the results.
-    """
-    # --- Determine HF Space Runtime URL and Repo URL ---
-    space_id = os.getenv("SPACE_ID") # Get the SPACE_ID for sending link to the code
-
-    if profile:
-        username= f"{profile.username}"
-        print(f"User logged in: {username}")
-    else:
-        print("User not logged in.")
-        return "Please Login to Hugging Face with the button.", None
-
-    api_url = DEFAULT_API_URL
-    questions_url = f"{api_url}/questions"
-    submit_url = f"{api_url}/submit"
-
-    # 1. Instantiate Agent ( modify this part to create your agent)
-    try:
-        agent = BasicAgent()
-    except Exception as e:
-        print(f"Error instantiating agent: {e}")
-        return f"Error initializing agent: {e}", None
-    # In the case of an app running as a hugging Face space, this link points toward your codebase ( usefull for others so please keep it public)
-    agent_code = f"https://huggingface.co/spaces/{space_id}/tree/main"
-    print(agent_code)
-
-    # 2. Fetch Questions
-    print(f"Fetching questions from: {questions_url}")
-    try:
-        response = requests.get(questions_url, timeout=15)
-        response.raise_for_status()
-        questions_data = response.json()
-        if not questions_data:
-             print("Fetched questions list is empty.")
-             return "Fetched questions list is empty or invalid format.", None
-        print(f"Fetched {len(questions_data)} questions.")
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching questions: {e}")
-        return f"Error fetching questions: {e}", None
-    except requests.exceptions.JSONDecodeError as e:
-         print(f"Error decoding JSON response from questions endpoint: {e}")
-         print(f"Response text: {response.text[:500]}")
-         return f"Error decoding server response for questions: {e}", None
-    except Exception as e:
-        print(f"An unexpected error occurred fetching questions: {e}")
-        return f"An unexpected error occurred fetching questions: {e}", None
-
-    # 3. Run your Agent
-    results_log = []
-    answers_payload = []
-    print(f"Running agent on {len(questions_data)} questions...")
-    for item in questions_data:
-        task_id = item.get("task_id")
-        question_text = item.get("question")
-        if not task_id or question_text is None:
-            print(f"Skipping item with missing task_id or question: {item}")
-            continue
-        
-        time.sleep(30)
+        self.conversation_history = []
+        print("✅ QnAChatbot initialized successfully")
+    
+    def process_question(self, question: str, history: List[Tuple[str, str]], uploaded_files: Optional[List] = None) -> Tuple[str, List[Tuple[str, str]]]:
+        """Process a question and return the response with updated history."""
+        if not question.strip() and not uploaded_files:
+            print("⚠️  No question or files provided")
+            return "", history
         
         try:
-            submitted_answer = agent(question_text)
-            answers_payload.append({"task_id": task_id, "submitted_answer": submitted_answer})
-            results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": submitted_answer})
+            print(f"\n{'='*60}")
+            print(f"🤖 Processing new question...")
+            print(f"📝 Question: {question[:100]}{'...' if len(question) > 100 else ''}")
+            print(f"📁 Files uploaded: {len(uploaded_files) if uploaded_files else 0}")
+            
+            # Handle uploaded files
+            file_context = ""
+            if uploaded_files:
+                print(f"📂 Processing {len(uploaded_files)} uploaded file(s)...")
+                file_context = self._process_uploaded_files(uploaded_files)
+                if file_context:
+                    original_question = question
+                    question = f"{question}\n\n{file_context}" if question.strip() else file_context
+                    print(f"📋 File context added to question (length: {len(file_context)} chars)")
+            
+            # Wrap the question in a HumanMessage
+            messages = [HumanMessage(content=question)]
+            print(f"🔄 Invoking agent graph...")
+            
+            # Get response from the agent
+            result = self.graph.invoke({"messages": messages})
+            print(f"📨 Received {len(result['messages'])} message(s) from agent")
+            
+            # Print all messages for debugging
+            for i, msg in enumerate(result['messages']):
+                print(f"📧 Message {i+1}: {type(msg).__name__}")
+                if hasattr(msg, 'content'):
+                    content_preview = msg.content[:200] + "..." if len(msg.content) > 200 else msg.content
+                    print(f"   Content preview: {content_preview}")
+            
+            answer = result['messages'][-1].content
+            
+            # Clean up the answer if it starts with "Assistant: "
+            if answer.startswith("Assistant: "):
+                answer = answer[11:]
+                print("🧹 Cleaned 'Assistant: ' prefix from response")
+            
+            # Update conversation history
+            history.append((question, answer))
+            print(f"✅ Question processed successfully")
+            print(f"📊 Response length: {len(answer)} characters")
+            print(f"💬 Total conversation history: {len(history)} exchanges")
+            print(f"{'='*60}\n")
+            
+            return "", history
+            
         except Exception as e:
-             print(f"Error running agent on task {task_id}: {e}")
-             results_log.append({"Task ID": task_id, "Question": question_text, "Submitted Answer": f"AGENT ERROR: {e}"})
+            error_msg = f"Error processing question: {str(e)}"
+            print(f"❌ {error_msg}")
+            print(f"🔍 Exception details: {type(e).__name__}: {str(e)}")
+            import traceback
+            print(f"📋 Traceback:\n{traceback.format_exc()}")
+            history.append((question, error_msg))
+            print(f"{'='*60}\n")
+            return "", history
+    
+    def _process_uploaded_files(self, uploaded_files: List) -> str:
+        """Process uploaded files and return context for the question."""
+        file_contexts = []
+        
+        for file_path in uploaded_files:
+            if not file_path or not os.path.exists(file_path):
+                print(f"⚠️  Skipping invalid file path: {file_path}")
+                continue
+                
+            try:
+                file_name = os.path.basename(file_path)
+                file_ext = os.path.splitext(file_name)[1].lower()
+                file_size = os.path.getsize(file_path)
+                
+                print(f"📄 Processing file: {file_name} ({file_size} bytes, {file_ext})")
+                
+                # Handle different file types
+                if file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']:
+                    # Image file - convert to base64
+                    with open(file_path, 'rb') as f:
+                        image_data = base64.b64encode(f.read()).decode('utf-8')
+                    file_contexts.append(f"[UPLOADED IMAGE: {file_name}] - Base64 data: {image_data}")
+                    print(f"🖼️  Image converted to base64 ({len(image_data)} chars)")
+                    
+                elif file_ext in ['.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml']:
+                    # Text file - read content
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    file_contexts.append(f"[UPLOADED TEXT FILE: {file_name}]\nContent:\n{content}")
+                    print(f"📝 Text file content read ({len(content)} chars)")
+                    
+                elif file_ext in ['.csv']:
+                    # CSV file - provide file path for analysis
+                    file_contexts.append(f"[UPLOADED CSV FILE: {file_name}] - File path: {file_path}")
+                    print(f"📊 CSV file prepared for analysis")
+                    
+                elif file_ext in ['.xlsx', '.xls']:
+                    # Excel file - provide file path for analysis
+                    file_contexts.append(f"[UPLOADED EXCEL FILE: {file_name}] - File path: {file_path}")
+                    print(f"📈 Excel file prepared for analysis")
+                    
+                elif file_ext in ['.pdf']:
+                    # PDF file - mention it's available
+                    file_contexts.append(f"[UPLOADED PDF FILE: {file_name}] - File path: {file_path}")
+                    print(f"📄 PDF file prepared for processing")
+                    
+                else:
+                    # Other file types - just mention the file
+                    file_contexts.append(f"[UPLOADED FILE: {file_name}] - File path: {file_path}")
+                    print(f"📁 Generic file prepared for processing")
+                    
+            except Exception as e:
+                error_msg = f"Error processing file {file_path}: {e}"
+                print(f"❌ {error_msg}")
+                print(f"🔍 File processing error details: {type(e).__name__}: {str(e)}")
+                file_contexts.append(f"[ERROR PROCESSING FILE: {os.path.basename(file_path)}] - {str(e)}")
+        
+        total_context = "\n\n".join(file_contexts) if file_contexts else ""
+        if total_context:
+            print(f"📋 Total file context generated: {len(total_context)} characters")
+        
+        return total_context
+    
+    def clear_history(self):
+        """Clear the conversation history."""
+        print("🧹 Clearing conversation history...")
+        self.conversation_history = []
+        print("✅ Conversation history cleared")
+        return []
 
-    if not answers_payload:
-        print("Agent did not produce any answers to submit.")
-        return "Agent did not produce any answers to submit.", pd.DataFrame(results_log)
-
-    # 4. Prepare Submission 
-    submission_data = {"username": username.strip(), "agent_code": agent_code, "answers": answers_payload}
-    status_update = f"Agent finished. Submitting {len(answers_payload)} answers for user '{username}'..."
-    print(status_update)
-
-    # 5. Submit
-    print(f"Submitting {len(answers_payload)} answers to: {submit_url}")
-    try:
-        response = requests.post(submit_url, json=submission_data, timeout=60)
-        response.raise_for_status()
-        result_data = response.json()
-        final_status = (
-            f"Submission Successful!\n"
-            f"User: {result_data.get('username')}\n"
-            f"Overall Score: {result_data.get('score', 'N/A')}% "
-            f"({result_data.get('correct_count', '?')}/{result_data.get('total_attempted', '?')} correct)\n"
-            f"Message: {result_data.get('message', 'No message received.')}"
+def create_qna_interface():
+    """Create the Q&A chatbot interface."""
+    
+    print("🚀 Creating Q&A interface...")
+    # Initialize the chatbot
+    chatbot = QnAChatbot()
+    print("🎨 Setting up UI components...")
+    
+    # Custom CSS for better styling
+    custom_css = """
+    .gradio-container {
+        max-width: 1200px !important;
+        margin: auto !important;
+    }
+    .chat-message {
+        padding: 10px !important;
+        margin: 5px 0 !important;
+        border-radius: 10px !important;
+    }
+    .user-message {
+        background-color: #e3f2fd !important;
+        margin-left: 20% !important;
+    }
+    .bot-message {
+        background-color: #f5f5f5 !important;
+        margin-right: 20% !important;
+    }
+    """
+    
+    with gr.Blocks(css=custom_css, title="GAIA Agent - Q&A Chatbot") as demo:
+        gr.Markdown(
+            """
+            # 🤖 GAIA Agent - Q&A Chatbot
+            
+            Welcome to the GAIA Agent Q&A interface! Ask me anything and I'll help you find the answer using my various tools and capabilities.
+            
+            **What I can do:**
+            - 🔍 Search the web, Wikipedia, and academic papers
+            - 🧮 Perform mathematical calculations
+            - 💻 Execute code in multiple languages (Python, Bash, SQL, C, Java)
+            - 📊 Analyze CSV and Excel files
+            - 🖼️ Process and analyze images (JPG, PNG, GIF, etc.)
+            - 📄 Extract text from images (OCR)
+            - 📁 Handle file uploads and processing (PDF, DOC, TXT, etc.)
+            - 📈 Create visualizations and charts
+            - 🔧 Multi-file analysis and comparison
+            - And much more!
+            
+            ---
+            """
         )
-        print("Submission successful.")
-        results_df = pd.DataFrame(results_log)
-        return final_status, results_df
-    except requests.exceptions.HTTPError as e:
-        error_detail = f"Server responded with status {e.response.status_code}."
-        try:
-            error_json = e.response.json()
-            error_detail += f" Detail: {error_json.get('detail', e.response.text)}"
-        except requests.exceptions.JSONDecodeError:
-            error_detail += f" Response: {e.response.text[:500]}"
-        status_message = f"Submission Failed: {error_detail}"
-        print(status_message)
-        results_df = pd.DataFrame(results_log)
-        return status_message, results_df
-    except requests.exceptions.Timeout:
-        status_message = "Submission Failed: The request timed out."
-        print(status_message)
-        results_df = pd.DataFrame(results_log)
-        return status_message, results_df
-    except requests.exceptions.RequestException as e:
-        status_message = f"Submission Failed: Network error - {e}"
-        print(status_message)
-        results_df = pd.DataFrame(results_log)
-        return status_message, results_df
-    except Exception as e:
-        status_message = f"An unexpected error occurred during submission: {e}"
-        print(status_message)
-        results_df = pd.DataFrame(results_log)
-        return status_message, results_df
-
-
-# --- Build Gradio Interface using Blocks ---
-with gr.Blocks() as demo:
-    gr.Markdown("# Basic Agent Evaluation Runner")
-    gr.Markdown(
-        """
-        **Instructions:**
-        1.  Please clone this space, then modify the code to define your agent's logic, the tools, the necessary packages, etc ...
-        2.  Log in to your Hugging Face account using the button below. This uses your HF username for submission.
-        3.  Click 'Run Evaluation & Submit All Answers' to fetch questions, run your agent, submit answers, and see the score.
-        ---
-        **Disclaimers:**
-        Once clicking on the "submit button, it can take quite some time ( this is the time for the agent to go through all the questions).
-        This space provides a basic setup and is intentionally sub-optimal to encourage you to develop your own, more robust solution. For instance for the delay process of the submit button, a solution could be to cache the answers and submit in a seperate action or even to answer the questions in async.
-        """
-    )
-
-    gr.LoginButton()
-
-    run_button = gr.Button("Run Evaluation & Submit All Answers")
-
-    status_output = gr.Textbox(label="Run Status / Submission Result", lines=5, interactive=False)
-    # Removed max_rows=10 from DataFrame constructor
-    results_table = gr.DataFrame(label="Questions and Agent Answers", wrap=True)
-
-    run_button.click(
-        fn=run_and_submit_all,
-        outputs=[status_output, results_table]
-    )
+        
+        # Chat interface
+        with gr.Row():
+            with gr.Column(scale=1):
+                chatbot_interface = gr.Chatbot(
+                    label="Conversation",
+                    height=500,
+                    show_label=True,
+                    container=True,
+                    bubble_full_width=False
+                )
+        
+        # File upload section
+        with gr.Row():
+            with gr.Column():
+                file_upload = gr.File(
+                    label="📁 Upload Files (Images, Documents, CSV, Excel, etc.)",
+                    file_count="multiple",
+                    file_types=[
+                        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",  # Images
+                        ".txt", ".md", ".py", ".js", ".html", ".css", ".json", ".xml",  # Text files
+                        ".csv", ".xlsx", ".xls",  # Data files
+                        ".pdf", ".doc", ".docx"  # Documents
+                    ],
+                    height=100
+                )
+        
+        with gr.Row():
+            with gr.Column(scale=8):
+                question_input = gr.Textbox(
+                    label="Ask a question",
+                    placeholder="Type your question here or upload files above... (e.g., 'What is the capital of France?', 'Analyze this image', 'Summarize this document')",
+                    lines=2,
+                    max_lines=5
+                )
+            with gr.Column(scale=1, min_width=100):
+                submit_btn = gr.Button("Send", variant="primary", size="lg")
+        
+        with gr.Row():
+            clear_btn = gr.Button("Clear History", variant="secondary")
+            clear_files_btn = gr.Button("Clear Files", variant="secondary")
+            
+        # Example questions
+        with gr.Row():
+            gr.Markdown("### 💡 Example Questions:")
+            
+        with gr.Row():
+            with gr.Column():
+                gr.Examples(
+                    examples=[
+                        "What is the current population of Tokyo?",
+                        "Calculate the square root of 144",
+                        "Write a Python function to sort a list",
+                        "What are the latest developments in AI?",
+                        "Explain quantum computing in simple terms",
+                    ],
+                    inputs=question_input,
+                    label="General Questions"
+                )
+            with gr.Column():
+                gr.Examples(
+                    examples=[
+                        "Search for recent papers on machine learning",
+                        "What is the weather like today?",
+                        "Create a simple bar chart using Python",
+                        "Convert 100 USD to EUR",
+                        "What are the benefits of renewable energy?",
+                    ],
+                    inputs=question_input,
+                    label="Research & Analysis"
+                )
+            with gr.Column():
+                gr.Examples(
+                    examples=[
+                        "Analyze this image and describe what you see",
+                        "Extract text from this image using OCR",
+                        "Summarize the content of this document",
+                        "Analyze the data in this CSV file",
+                        "What insights can you find in this Excel file?",
+                    ],
+                    inputs=question_input,
+                    label="File Analysis"
+                )
+        
+        # Event handlers
+        def submit_question(question, history, files):
+            print(f"🎯 UI: Submit button clicked")
+            print(f"📝 UI: Question length: {len(question) if question else 0}")
+            print(f"📁 UI: Files count: {len(files) if files else 0}")
+            result_question, result_history = chatbot.process_question(question, history, files)
+            print(f"🔄 UI: Returning results and clearing files")
+            return result_question, result_history, None  # Clear files after processing
+        
+        def clear_conversation():
+            print("🧹 UI: Clear conversation button clicked")
+            return chatbot.clear_history()
+        
+        def clear_files():
+            print("🗑️  UI: Clear files button clicked")
+            return None
+        
+        # Connect the events
+        submit_btn.click(
+            fn=submit_question,
+            inputs=[question_input, chatbot_interface, file_upload],
+            outputs=[question_input, chatbot_interface, file_upload],
+            show_progress=True
+        )
+        
+        question_input.submit(
+            fn=submit_question,
+            inputs=[question_input, chatbot_interface, file_upload],
+            outputs=[question_input, chatbot_interface, file_upload],
+            show_progress=True
+        )
+        
+        clear_btn.click(
+            fn=clear_conversation,
+            outputs=[chatbot_interface],
+            show_progress=False
+        )
+        
+        clear_files_btn.click(
+            fn=clear_files,
+            outputs=[file_upload],
+            show_progress=False
+        )
+        
+        # Footer
+        gr.Markdown(
+            """
+            ---
+            
+            **Note:** This agent uses various tools and APIs to provide comprehensive answers. 
+            Processing complex questions and file analysis may take some time. Please be patient!
+            
+            **Supported file types:** 
+            - **Images:** JPG, PNG, GIF, BMP, WebP
+            - **Documents:** PDF, DOC, DOCX, TXT, MD
+            - **Data files:** CSV, Excel (XLS, XLSX)
+            - **Code files:** Python, JavaScript, HTML, CSS, JSON, XML
+            
+            **Powered by:** LangGraph, Groq, and various specialized tools
+            """
+        )
+    
+    return demo
 
 if __name__ == "__main__":
-    print("\n" + "-"*30 + " App Starting " + "-"*30)
-    # Check for SPACE_HOST and SPACE_ID at startup for information
-    space_host_startup = os.getenv("SPACE_HOST")
-    space_id_startup = os.getenv("SPACE_ID") # Get SPACE_ID at startup
-
-    if space_host_startup:
-        print(f"✅ SPACE_HOST found: {space_host_startup}")
-        print(f"   Runtime URL should be: https://{space_host_startup}.hf.space")
-    else:
-        print("ℹ️  SPACE_HOST environment variable not found (running locally?).")
-
-    if space_id_startup: # Print repo URLs if SPACE_ID is found
-        print(f"✅ SPACE_ID found: {space_id_startup}")
-        print(f"   Repo URL: https://huggingface.co/spaces/{space_id_startup}")
-        print(f"   Repo Tree URL: https://huggingface.co/spaces/{space_id_startup}/tree/main")
-    else:
-        print("ℹ️  SPACE_ID environment variable not found (running locally?). Repo URL cannot be determined.")
-
-    print("-"*(60 + len(" App Starting ")) + "\n")
-
-    print("Launching Gradio Interface for Basic Agent Evaluation...")
-    demo.launch(debug=True, share=False)
+    print("\n" + "-"*50)
+    print("🚀 Starting GAIA Agent Q&A Chatbot...")
+    print("-"*50 + "\n")
+    
+    # Create and launch the interface
+    demo = create_qna_interface()
+    demo.launch(
+        debug=True,
+        share=False,
+        server_name="0.0.0.0",
+        server_port=7860,
+        show_error=True
+    ) 

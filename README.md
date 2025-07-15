@@ -1,8 +1,8 @@
 ---
-title: Template Final Assignment
-emoji: 🕵🏻‍♂️
-colorFrom: indigo
-colorTo: indigo
+title: GAIA Agent - Q&A Chatbot
+emoji: 🤖
+colorFrom: blue
+colorTo: purple
 sdk: gradio
 sdk_version: 5.25.2
 app_file: app.py
@@ -12,58 +12,166 @@ hf_oauth: true
 hf_oauth_expiration_minutes: 480
 ---
 
-# **GAIA Agent**
+# 🤖 **GAIA Agent - Advanced Q&A Chatbot**
 
-## **Introduction**
+## 🌟 **Introduction**
 
-**GAIA Agent** is an automated system built to tackle and submit solutions for the GAIA benchmark, which tests the capabilities of general-purpose AI agents on diverse and challenging tasks. These tasks require a combination of reasoning, code execution, information retrieval, data interpretation, and multimodal understanding. Powered by advanced language models (such as HuggingFace, and Groq), the agent incorporates a versatile set of tools including browser tools, code interpreter tools, mathematical tools, document processing tools, image processing and generation tools. It is designed for seamless interaction with the benchmark, offering automatic evaluation, submission, and result display through a user-friendly Gradio interface.
+**GAIA Agent** is a sophisticated AI-powered chatbot system designed to handle complex questions and tasks through an intuitive Q&A interface. Built on top of the GAIA benchmark framework, this agent combines advanced reasoning, code execution, web search, document processing, and multimodal understanding capabilities. The system features both a user-friendly chatbot interface and a comprehensive evaluation runner for benchmark testing.
 
-## **Tools Implementation**
+## 🚀 **Key Features**
 
-### **Browser tools** 
-- **Wikipedia Search:** Search Wikipedia for a query and return maximum 2 results.
-- **Web Search:** Search the web for a query and return maximum 2 results.
-- **Arxiv Search:** Search arXiv for a query and return maximum 2 results.
+- **🔍 Multi-Modal Search**: Web search, Wikipedia, and arXiv paper search
+- **💻 Code Execution**: Support for Python, Bash, SQL, C, and Java
+- **🖼️ Image Processing**: Analysis, transformation, OCR, and generation
+- **📄 Document Processing**: PDF, CSV, Excel, and text file analysis
+- **📁 File Upload Support**: Handle multiple file types with drag-and-drop
+- **🧮 Mathematical Operations**: Complete set of mathematical tools
+- **💬 Conversational Interface**: Natural chat-based interaction
+- **📊 Evaluation System**: Automated benchmark testing and submission
 
-### **Code interpreter tools**
-- **Execute Multi-programming Language:** Execute code in multiple languages (Python, Bash, SQL, C, Java) and return results.
+## 🏗️ **Project Structure**
 
-### **Mathematical tools**
-- **Multiplication Tools:** Multiplies 2 numbers 
-- **Addition:** Adds 2 numbers
-- **Subtraction:** Subtracts 2 numbers 
-- **Division:** Divides 2 numbers 
-- **Modulus:** Get the modulus of 2 numbers
-- **Power:** Get the power of 2 numbers 
-- **Square root:** Get the square root of a number
+```
+gaia-agent/
+├── app.py                    # Main Q&A chatbot interface
+├── evaluation_app.py         # GAIA benchmark evaluation runner
+├── agent.py                  # Core agent implementation with tools
+├── code_interpreter.py       # Multi-language code execution
+├── image_processing.py       # Image processing utilities
+├── system_prompt.txt         # System prompt for the agent
+├── requirements.txt          # Python dependencies
+├── metadata.jsonl           # GAIA benchmark metadata
+├── explore_metadata.ipynb   # Data exploration notebook
+└── README.md               # This file
+```
 
-### **Document processing tools**
-- **Save and Read File:** Save content to a file and return the path 
-- **Download a File from URL:** Download a file from a URL and save it to a temporary location
-- **Extract Text from Image:** Extract text from an image using OCR library pytesseract (if available)
-- **Analyze CSV File:** Analyze a CSV file using pandas and answer a question about it 
-- **Analyze Excel File:** Analyze an Excel file using pandas and answer a question about it
+## 🛠️ **Tool Categories**
 
-### **Image processing and generation tools**
-- **Analyze Image:** Analyze basic properties of an image (size, mode, color analysis, thumbnail preview)
-- **Transform Image:** Apply transformations: resize, rotate, crop, flip, brightness, contrast, blur, sharpen, grayscale
-- **Draw on Image:** Draw shapes (rectangle, circle, line) or text onto an image
-- **Generate Simple Image:** Generate a simple image (gradient, noise, pattern, chart)
-- **Combine Images:** Combine multiple images (collage, stack, blend)
+### **🌐 Browser & Search Tools**
+- **Wikipedia Search**: Search Wikipedia with up to 2 results
+- **Web Search**: Tavily-powered web search with up to 3 results  
+- **arXiv Search**: Academic paper search with up to 3 results
 
-## **Database Setup**
+### **💻 Code Interpreter Tools**
+- **Multi-Language Execution**: Python, Bash, SQL, C, Java support
+- **Plot Generation**: Matplotlib visualization support
+- **DataFrame Analysis**: Pandas data processing
+- **Error Handling**: Comprehensive error reporting
 
-### **Supabase Vector Store**
-This project uses Supabase as a vector database to store and retrieve GAIA benchmark questions and answers. The vector store enables semantic search capabilities for finding relevant examples.
+### **🧮 Mathematical Tools**
+- **Basic Operations**: Add, subtract, multiply, divide
+- **Advanced Functions**: Modulus, power, square root
+- **Complex Numbers**: Support for complex number operations
 
-### **Creating the `match_documents_2` Function**
-To set up the vector similarity search function in your Supabase database, execute the following SQL commands:
+### **📄 Document Processing Tools**
+- **File Operations**: Save, read, and download files
+- **CSV Analysis**: Pandas-based data analysis
+- **Excel Processing**: Excel file analysis and processing
+- **OCR**: Extract text from images using Tesseract
 
+### **🖼️ Image Processing & Generation Tools**
+- **Image Analysis**: Size, color, and property analysis
+- **Transformations**: Resize, rotate, crop, flip, adjust brightness/contrast
+- **Drawing Tools**: Add shapes, text, and annotations
+- **Image Generation**: Create gradients, noise patterns, and simple graphics
+- **Image Combination**: Stack and combine multiple images
+
+## 🎯 **How to Use**
+
+### **Q&A Chatbot Interface (app.py)**
+
+1. **Start the Chatbot:**
+   ```bash
+   python app.py
+   ```
+
+2. **Access the Interface:**
+   - Open `http://localhost:7860` in your browser
+   - Upload files (images, documents, CSV, etc.) if needed
+   - Ask questions in natural language
+   - Get comprehensive answers with tool usage
+
+3. **Supported Interactions:**
+   - **Text Questions**: "What is the capital of France?"
+   - **Math Problems**: "Calculate the square root of 144"
+   - **Code Requests**: "Write a Python function to sort a list"
+   - **Image Analysis**: Upload an image and ask "What do you see?"
+   - **Data Analysis**: Upload a CSV and ask "What are the trends?"
+   - **Web Search**: "What are the latest AI developments?"
+
+### **Evaluation Runner (evaluation_app.py)**
+
+1. **Run the Evaluation:**
+   ```bash
+   python evaluation_app.py
+   ```
+
+2. **Benchmark Testing:**
+   - Log in with your Hugging Face account
+   - Click "Run Evaluation & Submit All Answers"
+   - Monitor progress as the agent processes GAIA benchmark questions
+   - View results and scores automatically
+
+## 🔧 **Technical Architecture**
+
+### **LangGraph State Machine**
+```
+START → Retriever → Assistant → Tools → Assistant
+                     ↑              ↓
+                     └──────────────┘
+```
+
+1. **Retriever Node**: Searches vector database for similar questions
+2. **Assistant Node**: LLM processes question with available tools
+3. **Tools Node**: Executes selected tools (web search, code, etc.)
+4. **Conditional Routing**: Dynamically routes between assistant and tools
+
+### **Vector Database Integration**
+- **Supabase Vector Store**: Stores GAIA benchmark Q&A pairs
+- **Semantic Search**: Finds similar questions for context
+- **HuggingFace Embeddings**: sentence-transformers/all-mpnet-base-v2
+
+### **Multi-Modal File Support**
+- **Images**: JPG, PNG, GIF, BMP, WebP (Base64 processing)
+- **Documents**: PDF, DOC, DOCX, TXT, MD (Content extraction)
+- **Data**: CSV, Excel (Pandas analysis)
+- **Code**: Python, JavaScript, HTML, CSS, JSON, XML
+
+## ⚙️ **Installation & Setup**
+
+### **1. Clone Repository**
+```bash
+git clone https://github.com/fisherman611/gaia-agent.git
+cd gaia-agent
+```
+
+### **2. Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+### **3. Environment Variables**
+Create a `.env` file with your API keys:
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_key
+GROQ_API_KEY=your_groq_api_key
+TAVILY_API_KEY=your_tavily_api_key
+HUGGINGFACEHUB_API_TOKEN=your_hf_token
+LANGSMITH_API_KEY=your_langsmith_key
+
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=ai_agent_course
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+```
+
+### **4. Database Setup (Supabase)**
+Execute this SQL in your Supabase database:
 ```sql
--- 1. Make sure pgvector is enabled
+-- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- 2. Create the RPC for your "documents2" table
+-- Create match function for documents2 table
 CREATE OR REPLACE FUNCTION public.match_documents_2(
   query_embedding vector(768)
 )
@@ -87,63 +195,42 @@ AS $$
   LIMIT 10;
 $$;
 
--- 3. Grant execute to anon/authenticated
-GRANT EXECUTE ON FUNCTION public.match_documents(vector) TO anon, authenticated;
+-- Grant permissions
+GRANT EXECUTE ON FUNCTION public.match_documents_2(vector) TO anon, authenticated;
 ```
 
-This setup:
-1. Enables the pgvector extension for vector operations
-2. Creates a stored function that performs vector similarity search using cosine distance (`<=>`)
-3. Grants execution permissions to anonymous and authenticated users
-4. Returns the top 10 most similar documents with their similarity scores
+## 🚀 **Running the Application**
 
-## **Installation**
-Clone the repository, change the current working directory to this repository's root folder:
+### **Chatbot Interface**
+```bash
+python app.py
+```
+Access at: `http://localhost:7860`
 
+### **Evaluation Runner**
+```bash
+python evaluation_app.py
 ```
-git clone https://github.com/fisherman611/gaia-agent.git
-```
-```
-cd gaia-agent
-```
+Access at: `http://localhost:7860`
 
-Install ```requirements.txt``` (replace `3.11` with your installed Python version):
+### **Live Demo**
+Try it online: [Hugging Face Space](https://huggingface.co/spaces/fisherman611/gaia-agent)
 
-```
-py -3.11 -m pip install -r requirements.txt
-```
+## 🔗 **Resources**
 
-## **Environment Variables**
-Store some API keys an variables in the `.env` file and load it in your code using `load_dotenv`
-
-```
-SUPABASE_URL=...
-SUPABASE_SERVICE_ROLE_KEY=...
-SUPABASE_SERVICE_KEY=...
-HUGGINGFACEHUB_API_TOKEN=...
-GROQ_API_KEY=...
-TAVILY_API_KEY=...
-LANGSMITH_API_KEY=...
-
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=ai_agent_course
-LANGSMITH_ENDPOINT=https://api.smith.langchain.com
-```
-
-## **Demo**
-To run the application using the command line, use the following command (replace `3.11` with your installed Python version):
-```
-py -3.11 app.py
-```
-Or run in the [Hugging Face Space](https://huggingface.co/spaces/fisherman611/gaia-agent)
-## **Resources**
 - [GAIA Benchmark](https://huggingface.co/spaces/gaia-benchmark/leaderboard)
 - [Hugging Face Agents Course](https://huggingface.co/agents-course)
-- [Langgraph Agents](https://langchain-ai.github.io/langgraph/)
+- [LangGraph Documentation](https://langchain-ai.github.io/langgraph/)
+- [Supabase Vector Store](https://supabase.com/docs/guides/ai/vector-columns)
 
+## 🤝 **Contributing**
 
-## **Contributing**
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+Contributions are welcome! Areas for improvement:
+- **New Tools**: Add specialized tools for specific domains
+- **UI Enhancements**: Improve the chatbot interface
+- **Performance**: Optimize response times and accuracy
+- **Documentation**: Expand examples and use cases
 
-## **License**
+## 📄 **License**
+
 This project is licensed under the [MIT License](https://mit-license.org/).
