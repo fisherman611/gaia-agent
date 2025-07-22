@@ -926,34 +926,6 @@ def create_qna_interface():
             outputs=[download_file],
             show_progress=True
         )
-        
-        # Enhanced Footer with better styling
-        with gr.Row(elem_classes="footer"):
-            gr.Markdown(
-                """
-                ### 📋 **Important Information**
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
-                    <div style="text-align: left;">
-                        <strong>⏱️ Processing Time</strong><br>
-                        <small>Complex questions may take time. Please be patient!</small>
-                    </div>
-                    <div style="text-align: left;">
-                        <strong>📁 Supported Files</strong><br>
-                        <small>Images, Documents, CSV, Excel, Code files</small>
-                    </div>
-                    <div style="text-align: left;">
-                        <strong>🔧 Powered By</strong><br>
-                        <small>LangGraph, Groq, and specialized AI tools</small>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center;">
-                    <span style="color: #667eea; font-weight: 600;">🤖 GAIA Agent</span> - 
-                    <span style="color: #718096;">Advanced AI Assistant for Complex Tasks</span>
-                </div>
-                """
-            )
     
     return demo
 
